@@ -267,12 +267,15 @@
       }
     }
 
-    /* Custom Trailing Mouse Pointer (Purple Ink Nib + Ring) */
+    /* Custom Branded Mouse Pointer (PC / Laptop fine pointer only) */
     .custom-cursor-dot,
     .custom-cursor-ring {
       display: none;
     }
     @media (hover: hover) and (pointer: fine) {
+      html, body, a, button, input, select, textarea, label, [role="button"] {
+        cursor: none !important;
+      }
       .custom-cursor-dot,
       .custom-cursor-ring {
         display: block;
@@ -280,39 +283,57 @@
         top: 0;
         left: 0;
         pointer-events: none;
-        z-index: 9999;
+        z-index: 99999;
         opacity: 0;
-        transition: opacity 0.2s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
         will-change: transform;
       }
       .custom-cursor-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 9999px;
-        background-color: #6D28D9;
-        border: 1.5px solid #FFFFFF;
+        width: 26px;
+        height: 26px;
+        transition: opacity 0.15s ease, filter 0.15s ease;
+        filter: drop-shadow(0 4px 10px rgba(109, 40, 217, 0.45));
+      }
+      .custom-cursor-dot.is-hovering {
+        filter: drop-shadow(0 4px 14px rgba(250, 204, 21, 0.65));
       }
       .custom-cursor-ring {
-        width: 34px;
-        height: 34px;
+        width: 36px;
+        height: 36px;
         border-radius: 9999px;
-        border: 2px dashed #7C3AED;
-        background-color: rgba(124, 58, 237, 0.06);
+        border: 1.5px solid rgba(124, 58, 237, 0.65);
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+        transition: opacity 0.2s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease, background 0.2s ease;
       }
       .custom-cursor-ring.is-hovering {
-        width: 48px;
-        height: 48px;
-        border-style: solid;
-        border-color: #1A103D;
-        background-color: rgba(250, 204, 21, 0.18);
+        width: 50px;
+        height: 50px;
+        border-color: #FACC15;
+        background: radial-gradient(circle, rgba(250, 204, 21, 0.22) 0%, transparent 70%);
+      }
+      .custom-cursor-ring.is-clicking {
+        width: 26px;
+        height: 26px;
+        border-color: #6D28D9;
       }
     }
   </style>
 </head>
 <body class="antialiased selection:bg-purple-brand selection:text-white">
-  <!-- Custom Trailing Mouse Pointer -->
-  <div id="cursorDot" class="custom-cursor-dot" aria-hidden="true"></div>
+  <!-- Custom Branded Mouse Pointer -->
   <div id="cursorRing" class="custom-cursor-ring" aria-hidden="true"></div>
+  <div id="cursorDot" class="custom-cursor-dot" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bizCursorGrad" x1="2" y1="2" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#FACC15"/>
+          <stop offset="55%" stop-color="#9333EA"/>
+          <stop offset="100%" stop-color="#4C1D95"/>
+        </linearGradient>
+      </defs>
+      <path d="M4.5 2.5L19.5 11.2L12.6 13.1L10.3 20.2L4.5 2.5Z" fill="url(#bizCursorGrad)" stroke="#1A103D" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="5.2" cy="3.2" r="1.4" fill="#FACC15"/>
+    </svg>
+  </div>
 
   <!-- ==================== HEADER / NAVIGATION ==================== -->
   <header class="fixed top-0 inset-x-0 z-50 border-b-2 border-ink bg-paper/95 backdrop-blur-md">
@@ -2287,11 +2308,14 @@
       let isVisible = false;
       let rafId = null;
 
-      function renderCursor() {
-        ringX += (mouseX - ringX) * 0.18;
-        ringY += (mouseY - ringY) * 0.18;
+      let isClicking = false;
 
-        dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0) translate(-50%, -50%)`;
+      function renderCursor() {
+        ringX += (mouseX - ringX) * 0.2;
+        ringY += (mouseY - ringY) * 0.2;
+
+        const clickScale = isClicking ? 0.86 : 1;
+        dot.style.transform = `translate3d(${mouseX - 4}px, ${mouseY - 2}px, 0) scale(${clickScale})`;
         ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`;
 
         if (isVisible) {
@@ -2313,7 +2337,19 @@
           if (!rafId) rafId = requestAnimationFrame(renderCursor);
         }
         const interactive = e.target.closest('a, button, input, select, textarea, label, .faq-trigger');
-        ring.classList.toggle('is-hovering', Boolean(interactive));
+        const isHover = Boolean(interactive);
+        ring.classList.toggle('is-hovering', isHover);
+        dot.classList.toggle('is-hovering', isHover);
+      });
+
+      document.addEventListener('mousedown', () => {
+        isClicking = true;
+        ring.classList.add('is-clicking');
+      });
+
+      document.addEventListener('mouseup', () => {
+        isClicking = false;
+        ring.classList.remove('is-clicking');
       });
 
       document.addEventListener('mouseleave', () => {
