@@ -1533,11 +1533,11 @@
               <!-- Experience Badges -->
               <div class="grid sm:grid-cols-3 gap-4 pt-2">
                 <div class="sketch-card rounded-2xl p-5">
-                  <p class="font-display text-2xl font-extrabold text-purple-brand">5 Years</p>
+                  <p class="font-display text-2xl font-extrabold text-purple-brand count-up" data-count-target="5" data-count-suffix=" Years">5 Years</p>
                   <p class="text-xs font-semibold text-zinc-600 mt-1">Experience in Content Creation</p>
                 </div>
                 <div class="sketch-card rounded-2xl p-5">
-                  <p class="font-display text-2xl font-extrabold text-purple-brand">2 Years</p>
+                  <p class="font-display text-2xl font-extrabold text-purple-brand count-up" data-count-target="2" data-count-suffix=" Years">2 Years</p>
                   <p class="text-xs font-semibold text-zinc-600 mt-1">Experience in Content Marketing</p>
                 </div>
                 <div class="sketch-card rounded-2xl p-5">
@@ -1563,17 +1563,17 @@
 
           <div class="grid md:grid-cols-3 gap-5">
             <div class="sketch-card rounded-2xl p-6">
-              <p class="font-display text-3xl sm:text-4xl font-extrabold text-purple-brand">100,000,000</p>
+              <p class="font-display text-3xl sm:text-4xl font-extrabold text-purple-brand count-up" data-count-target="100000000" data-count-format="comma">100,000,000</p>
               <p class="text-sm font-bold text-ink mt-2">Views Generated in Total</p>
               <p class="text-xs text-zinc-600 mt-1">Across personal branding &amp; content campaigns</p>
             </div>
             <div class="sketch-card rounded-2xl p-6">
-              <p class="font-display text-3xl sm:text-4xl font-extrabold text-purple-brand">30+ Pages</p>
+              <p class="font-display text-3xl sm:text-4xl font-extrabold text-purple-brand count-up" data-count-target="30" data-count-suffix="+ Pages">30+ Pages</p>
               <p class="text-sm font-bold text-ink mt-2">Grown to 10K Followers</p>
               <p class="text-xs text-zinc-600 mt-1">Repeatable content systems built for scale</p>
             </div>
             <div class="sketch-card rounded-2xl p-6">
-              <p class="font-display text-3xl sm:text-4xl font-extrabold text-ink">12 Clients</p>
+              <p class="font-display text-3xl sm:text-4xl font-extrabold text-ink count-up" data-count-target="12" data-count-suffix=" Clients">12 Clients</p>
               <p class="text-sm font-bold text-ink mt-2">Working With Right Now</p>
               <p class="text-xs text-zinc-600 mt-1">Active founders &amp; business owners</p>
             </div>
@@ -2313,7 +2313,10 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (target === 'founder') {
         document.querySelectorAll('.timeline-item').forEach((item) => item.classList.remove('in-view'));
-        setTimeout(revealVisibleTimelineItems, 120);
+        setTimeout(() => {
+          revealVisibleTimelineItems();
+          animateFounderCounters();
+        }, 120);
       }
     }
 
@@ -2584,6 +2587,33 @@
         form.classList.remove('hidden');
       });
     })();
+
+    // Smooth Count-Up Animation for Founder Metrics
+    function animateFounderCounters() {
+      const counters = document.querySelectorAll('#page-founder .count-up');
+      counters.forEach((el) => {
+        const target = Number(el.dataset.countTarget || 0);
+        const suffix = el.dataset.countSuffix || '';
+        const useComma = el.dataset.countFormat === 'comma';
+        const duration = target >= 1000000 ? 1500 : 1000;
+        const start = performance.now();
+
+        function step(now) {
+          const elapsed = now - start;
+          const progress = Math.min(1, elapsed / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = Math.round(target * eased);
+          const formatted = useComma ? current.toLocaleString('en-US') : String(current);
+          el.textContent = formatted + suffix;
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            el.textContent = (useComma ? target.toLocaleString('en-US') : String(target)) + suffix;
+          }
+        }
+        requestAnimationFrame(step);
+      });
+    }
 
     // Interactive 3D Character Parallax Tilt
     (function initCharacter3D() {
